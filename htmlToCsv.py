@@ -66,7 +66,8 @@ def main(args):
 	inputFile = open(args.input, "r")
 	lastUser = "" #Name of the last user to be mentioned in the log, so probably the user speaking now
 	lastTime = "" #The last timestamp mentioned in the log, so probably the time of whatever message is being read now
-	msgs = [] #List of messages to be logged
+	msgs = [] #List of messages' contents
+	samples = [] #List of samples
 	message = "" #The message string to be added to the log
 	i = 0 #int for iterating through lines
 	j = 0 #int for combining messages that span multiple lines
@@ -81,7 +82,8 @@ def main(args):
 			continue
 		if IMAGE_INDIC in line:
 			#There was an image sent into the chat
-			msgs.append(author + DELIMITER + lastTime + DELIMITER + IMG_SYMBOL)
+			msgs.append(IMG_SYMBOL)
+			samples.append(author + DELIMITER + lastTime)
 			continue
 		if AUTHOR_INDIC in line:
 			#There is an author listed in this line
@@ -98,15 +100,19 @@ def main(args):
 			message = getMessage(line)
 			if len(message) > 1:
 				#This is a valid message
-				message = author + DELIMITER + lastTime + DELIMITER + message
 				msgs.append(message)
-
+				samples.append(author + DELIMITER + lastTime)
 	inputFile.close()
+
+	#Tokenize the messages
+
 	#Save the output
+	for i in range(0, len(samples)):
+		samples[i] = samples[i] + DELIMITER + msgs[i]
 	outputFile = open(OUTPUT_FILE, "w+")
-	for msg in msgs:
-		#Iterate through the messages in msgs
-		outputFile.write(msg + "\n")
+	for sample in samples:
+		#Iterate through each sample in samples
+		outputFile.write(sample + "\n")
 	outputFile.close()
 
 
