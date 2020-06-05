@@ -31,6 +31,8 @@ IMG_SYMBOL = "$IMAGE$"
 LINK_SYMBOL = "$LINK$"
 EMOJI_SYMBOL = " $EMOJI$ " #Add spaces so that they aren't sticking to eachother or other words
 
+HTML_SYMBOLS = {"&#39;":"'", "&#225;":"á", "&#224;":"à", "&#226;":"â", "&#233;":"é", "&#232;":"è", "&#201;":"É", "&gt;":">", "&lt;":"<", "&quot;":"\"", "&amp;":"&", "&#171;":"«", "&#187;":"»", "&#231;":"ç", "&#241;":"ñ", "&#237;":"í", "&#251;":"û", "&#235;":"ë", "&#161;":"¡", "&#245;":"õ", "&#234;":"ê", "&#199;":"Ç", "&#236;":"ì", "&#246;":"ö"}
+
 
 
 """
@@ -68,6 +70,19 @@ def getTime(line):
 	return temp
 
 """
+Fixes buggy symbols
+@param message: the message to be fixed
+@return the fixed message
+"""
+def getRepairedSymbols(message):
+	fixed = message
+	for symb in HTML_SYMBOLS.keys():
+		#Iterate through every symbol being buggy
+		fixed = fixed.replace(symb, HTML_SYMBOLS[symb])
+	fixed = fixed.replace("&#160;", "") #Idk what this is, but it doesn't belong here
+	return fixed
+
+"""
 Cleans the message of any emojis or buggy punctuation
 @param message: the message to be cleaned
 @return the cleaned message
@@ -86,6 +101,8 @@ def getCleaned(message):
 	while len(re.findall(RE_SPANS, cleaned)) > 0:
 		#There is a span remaining
 		cleaned = cleaned.replace(re.findall(RE_SPANS, cleaned)[0], "")
+	#Now to replace bugged punctuation and accents
+	cleaned = getRepairedSymbols(cleaned)
 	return cleaned
 
 """
@@ -131,7 +148,7 @@ def main(args):
 		if IMAGE_INDIC in line:
 			#There was an image sent into the chat
 			msgs.append(IMG_SYMBOL)
-			samples.append(author + DELIMITER + lastTime)
+			samples.append(getRepairedSymbols(author) + DELIMITER + lastTime)
 			continue
 		if AUTHOR_INDIC in line:
 			#There is an author listed in this line
@@ -149,7 +166,7 @@ def main(args):
 			if len(message) > 1:
 				#This is a valid message
 				msgs.append(message)
-				samples.append(author + DELIMITER + lastTime)
+				samples.append(getRepairedSymbols(author) + DELIMITER + lastTime)
 	inputFile.close()
 
 	#Tokenize the messages
