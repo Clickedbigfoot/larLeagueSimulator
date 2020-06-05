@@ -9,13 +9,18 @@ import argparse #Arguments and flags
 import re #Good for finding
 
 OUTPUT_FILE = "chat.csv"
-AUTHOR_INDIC = "author-name" #Indication of the message author's name
+DELIMITER = "_&_" #Delimiter in csv file
+
+AUTHOR_INDIC = "chatlog__author-name" #Indication of the message author's name
 TIME_INDIC = "timestamp" #Indication of the message's timestamp
 MESSAGE_INDIC = "markdown" #Indication of a message in the line
 MESSAGE_LINK_INDIC = "markdown\"><a href=" #Indication of a link being the message
 EMBED_LINK_INDIC = "chatlog__embed-" #Indication that this is just an embedded link title
 IMAGE_INDIC = "chatlog__attachment\""
+
 RE_MESSAGE = "markdown\">.*?</div" #Regex for finding a message
+RE_AUTHOR = "author-name\" title=\".*?#\d\d\d\d" #Regex for finding author name
+
 IMG_SYMBOL = "$IMAGE$"
 LINK_SYMBOL = "$LINK$"
 
@@ -33,13 +38,23 @@ def getMessage(line):
 	temp = temp[10:len(temp)-5]
 	return temp
 
+"""
+Returns the author listed in the line passed in
+@param line: the string line passed in that holds the author's name
+@return a string isolating the author name
+"""
+def getAuthor(line):
+	temp = re.findall(RE_AUTHOR, line)[0]
+	temp = temp[20:len(temp)-5]
+	return temp
+
 def main(args):
 	inputFile = open(args.input, "r")
 	lastUser = "" #Name of the last user to be mentioned in the log, so probably the user speaking now
-	lastTimes = "" #The last timestamp mentioned in the log, so probably the time of whatever message is being read now
+	lastTime = "" #The last timestamp mentioned in the log, so probably the time of whatever message is being read now
 	msgs = [] #List of messages to be logged
 	cap = 0
-	fin = 95
+	fin = 100
 	message = "" #The message string to be added to the log
 	i = 0 #int for iterating through lines
 	j = 0 #int for combining messages that span multiple lines
@@ -54,8 +69,11 @@ def main(args):
 			continue
 		if IMAGE_INDIC in line:
 			#There was an image sent into the chat
-			msgs.append(IMG_SYMBOL)
+			msgs.append(author + DELIMITER + IMG_SYMBOL)
 			continue
+		if AUTHOR_INDIC in line:
+			#There is an author listed in this line
+			author = getAuthor(line)
 		while ">\n" not in line:
 			#This line continues to the next one
 			line = line[:len(line) - 1] + ". " + lines[j] #Combine with the next line
@@ -65,8 +83,10 @@ def main(args):
 			message = getMessage(line)
 			if len(message) > 1:
 				#It's not just an empty message due to icons
+				message = author + DELIMITER + message
 				msgs.append(message)
 			cap += 1
+
 		if (cap >= fin):
 			break
 	inputFile.close()
