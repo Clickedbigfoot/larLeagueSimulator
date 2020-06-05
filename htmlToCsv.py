@@ -22,9 +22,11 @@ IMAGE_INDIC = "chatlog__attachment\""
 RE_MESSAGE = "markdown\">.*?</div" #Regex for finding a message
 RE_AUTHOR = "author-name\" title=\".*?#\d\d\d\d" #Regex for finding author name
 RE_TIME = "timestamp\">.*?</span" #Regex for finding the timestamp
+RE_EMOJI = "<img class=\"emoji.*?>" #Regex for finding emojis
 
 IMG_SYMBOL = "$IMAGE$"
 LINK_SYMBOL = "$LINK$"
+EMOJI_SYMBOL = " $EMOJI$ " #Add spaces so that they aren't sticking to eachother or other words
 
 
 
@@ -62,7 +64,41 @@ def getTime(line):
 	temp = temp[11:len(temp)-6]
 	return temp
 
+"""
+Cleans the message of any emojis or buggy punctuation
+@param message: the message to be cleaned
+@return the cleaned message
+"""
+def getCleaned(message):
+	cleaned = message
+	while len(re.findall(RE_EMOJI, cleaned)) > 0:
+		#There is an emoji
+		cleaned = cleaned.replace(re.findall(RE_EMOJI, cleaned)[0], EMOJI_SYMBOL)
+	return cleaned
+
+"""
+Creates a list of tokenized messages
+@param inputList: list of strings where each string is a message's contents
+@return list of strings
+"""
+def getTokenizedMessages(inputList):
+	messages = [] #List of messages to return
+	msg = "" #String of tokens in a message
+	token = "" #Token to add to msg
+	for contents in inputList:
+		#Iterate through each message's contents
+		msg = "" #Reset
+		token = ""
+		contents = getCleaned(contents) #Clean it up emojis and buggy punctuation
+		for char in contents:
+			#Iterate through every character in contents
+			token = token + char
+		msg = msg + token
+		messages.append(msg)
+	return messages
+
 def main(args):
+	#Start by extracting all the messages
 	inputFile = open(args.input, "r")
 	lastUser = "" #Name of the last user to be mentioned in the log, so probably the user speaking now
 	lastTime = "" #The last timestamp mentioned in the log, so probably the time of whatever message is being read now
@@ -105,14 +141,14 @@ def main(args):
 	inputFile.close()
 
 	#Tokenize the messages
+	msgs = getTokenizedMessages(msgs)
 
 	#Save the output
-	for i in range(0, len(samples)):
-		samples[i] = samples[i] + DELIMITER + msgs[i]
 	outputFile = open(OUTPUT_FILE, "w+")
-	for sample in samples:
-		#Iterate through each sample in samples
-		outputFile.write(sample + "\n")
+	for i in range(0, len(samples)):
+		#Iterate through the indeces of samples
+		samples[i] = samples[i] + DELIMITER + msgs[i]
+		outputFile.write(samples[i] + "\n")
 	outputFile.close()
 
 
