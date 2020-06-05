@@ -64,8 +64,7 @@ def main(args):
 	lastUser = "" #Name of the last user to be mentioned in the log, so probably the user speaking now
 	lastTime = "" #The last timestamp mentioned in the log, so probably the time of whatever message is being read now
 	msgs = [] #List of messages to be logged
-	cap = 0
-	fin = 100
+	cap = 62976
 	message = "" #The message string to be added to the log
 	i = 0 #int for iterating through lines
 	j = 0 #int for combining messages that span multiple lines
@@ -75,6 +74,8 @@ def main(args):
 		#Iterate through indeces in the lines of the chat log
 		j = i + 1 #Keep j at the next line
 		line = lines[i]
+		if i == cap:
+			print(line)
 		if line == "\n":
 			#Empty line
 			continue
@@ -88,21 +89,20 @@ def main(args):
 		if TIME_INDIC in line:
 			#There is a timestamp in this line
 			lastTime = getTime(line)
-		while ">\n" not in line:
-			#This line continues to the next one
-			line = line[:len(line) - 1] + ". " + lines[j] #Combine with the next line
-			j += 1
 		if (MESSAGE_INDIC in line) and (EMBED_LINK_INDIC not in line):
 			#There is a message in this line
+			while (">\n" not in line) or ("/em>\n" in line):
+				#This line continues to the next one
+				line = line[:len(line) - 1] + ". " + lines[j] #Combine with the next line
+				j += 1
 			message = getMessage(line)
 			if len(message) > 1:
 				#It's not just an empty message due to icons
 				message = author + DELIMITER + lastTime + DELIMITER + message
 				msgs.append(message)
-			cap += 1
 
-		if (cap >= fin):
-			break
+
+
 	inputFile.close()
 	#Save the output
 	outputFile = open(OUTPUT_FILE, "w+")
@@ -110,10 +110,6 @@ def main(args):
 		#Iterate through the messages in msgs
 		outputFile.write(msg + "\n")
 	outputFile.close()
-
-	#Print last three msgs for debug ease
-	for i in range(len(msgs)-5, len(msgs)):
-		print(msgs[i])
 
 
 if __name__ == "__main__":
