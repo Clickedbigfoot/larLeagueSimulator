@@ -15,6 +15,7 @@ AUTHOR_INDIC = "chatlog__author-name" #Indication of the message author's name
 TIME_INDIC = "chatlog__timestamp" #Indication of the message's timestamp
 MESSAGE_INDIC = "class=\"markdown" #Indication of a message in the line
 MESSAGE_LINK_INDIC = "markdown\"><a href=" #Indication of a link being the message
+MESSAGE_IN_LINK_INDIC = "<a href" #Indication of a link in the middle of the text message
 EMBED_LINK_INDIC = "chatlog__embed-" #Indication that this is just an embedded link title
 IMAGE_INDIC = "chatlog__attachment\""
 
@@ -33,6 +34,8 @@ Returns the message of the line passed in
 @return a string isolating the message
 """
 def getMessage(line):
+	if MESSAGE_IN_LINK_INDIC in line:
+		return LINK_SYMBOL
 	temp = re.findall(RE_MESSAGE, line)[0]
 	if MESSAGE_LINK_INDIC in temp:
 		return LINK_SYMBOL
@@ -64,7 +67,6 @@ def main(args):
 	lastUser = "" #Name of the last user to be mentioned in the log, so probably the user speaking now
 	lastTime = "" #The last timestamp mentioned in the log, so probably the time of whatever message is being read now
 	msgs = [] #List of messages to be logged
-	cap = 62976
 	message = "" #The message string to be added to the log
 	i = 0 #int for iterating through lines
 	j = 0 #int for combining messages that span multiple lines
@@ -74,8 +76,6 @@ def main(args):
 		#Iterate through indeces in the lines of the chat log
 		j = i + 1 #Keep j at the next line
 		line = lines[i]
-		if i == cap:
-			print(line)
 		if line == "\n":
 			#Empty line
 			continue
@@ -97,11 +97,9 @@ def main(args):
 				j += 1
 			message = getMessage(line)
 			if len(message) > 1:
-				#It's not just an empty message due to icons
+				#This is a valid message
 				message = author + DELIMITER + lastTime + DELIMITER + message
 				msgs.append(message)
-
-
 
 	inputFile.close()
 	#Save the output
