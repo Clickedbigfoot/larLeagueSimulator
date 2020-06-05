@@ -83,6 +83,9 @@ def getCleaned(message):
 		mention = re.findall(RE_MENTION_USER, re.findall(RE_MENTION, cleaned)[0])[0]
 		mention = mention[:len(mention) - 6] #Now just the name of the mentioned person
 		cleaned = cleaned.replace(re.findall(RE_MENTION, cleaned)[0], " " + mention + " ")
+	while len(re.findall(RE_SPANS, cleaned)) > 0:
+		#There is a span remaining
+		cleaned = cleaned.replace(re.findall(RE_SPANS, cleaned)[0], "")
 	return cleaned
 
 """
