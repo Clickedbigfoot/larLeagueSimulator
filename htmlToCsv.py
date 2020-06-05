@@ -23,6 +23,9 @@ RE_MESSAGE = "markdown\">.*?</div" #Regex for finding a message
 RE_AUTHOR = "author-name\" title=\".*?#\d\d\d\d" #Regex for finding author name
 RE_TIME = "timestamp\">.*?</span" #Regex for finding the timestamp
 RE_EMOJI = "<img class=\"emoji.*?>" #Regex for finding emojis
+RE_MENTION = "<span class=\"mention\".*?</span>" #Regex for finding mentions of other people
+RE_MENTION_USER = "@.*?</span" #Regex for getting the name of the person mentioned
+RE_SPANS = "<span.*?</span>" #Regex for getting all remaining spans
 
 IMG_SYMBOL = "$IMAGE$"
 LINK_SYMBOL = "$LINK$"
@@ -74,6 +77,12 @@ def getCleaned(message):
 	while len(re.findall(RE_EMOJI, cleaned)) > 0:
 		#There is an emoji
 		cleaned = cleaned.replace(re.findall(RE_EMOJI, cleaned)[0], EMOJI_SYMBOL)
+	mention = "" #String for replacing mention spans in the message
+	while len(re.findall(RE_MENTION, cleaned)) > 0:
+		#There is a mention
+		mention = re.findall(RE_MENTION_USER, re.findall(RE_MENTION, cleaned)[0])[0]
+		mention = mention[:len(mention) - 6] #Now just the name of the mentioned person
+		cleaned = cleaned.replace(re.findall(RE_MENTION, cleaned)[0], " " + mention + " ")
 	return cleaned
 
 """
