@@ -84,6 +84,23 @@ def getRepairedSymbols(message):
 	return fixed
 
 """
+Fixes the tokenization to not separate the @ in mentions and $ in link/image symbols
+"""
+def fixTokenizing(message):
+	finalForm = message
+	offender = ""
+	if len(IMG_SYMBOL) > 2:
+		offender = IMG_SYMBOL[0] + DELIMITER + IMG_SYMBOL[1:len(IMG_SYMBOL)-1] + DELIMITER + IMG_SYMBOL[len(IMG_SYMBOL)-1]
+		finalForm = finalForm.replace(offender.lower(), IMG_SYMBOL)
+	if len(LINK_SYMBOL) > 2:
+		offender = LINK_SYMBOL[0] + DELIMITER + LINK_SYMBOL[1:len(LINK_SYMBOL)-1] + DELIMITER + LINK_SYMBOL[len(LINK_SYMBOL)-1]
+		finalForm = finalForm.replace(offender.lower(), LINK_SYMBOL)
+	if len(EMOJI_SYMBOL) > 2:
+		offender = EMOJI_SYMBOL[0] + DELIMITER + EMOJI_SYMBOL[1:len(EMOJI_SYMBOL)-1] + DELIMITER + EMOJI_SYMBOL[len(EMOJI_SYMBOL)-1]
+		finalForm = finalForm.replace(offender.lower(), EMOJI_SYMBOL)
+	return finalForm
+
+"""
 Cleans the message of any emojis or buggy punctuation
 @param message: the message to be cleaned
 @return the cleaned message
@@ -213,6 +230,7 @@ def main(args):
 		samples[i] = samples[i] + DELIMITER + msgs[i]
 		samples[i] = samples[i].replace(DELIMITER + DELIMITER, DELIMITER)
 		#That^^^ is bad, but a more elegant fix sounds like a future-me problem
+		samples[i] = fixTokenizing(samples[i]) # <- Still bad, but sounds like a problem for never-me
 		outputFile.write(samples[i] + "\n")
 	outputFile.close()
 
