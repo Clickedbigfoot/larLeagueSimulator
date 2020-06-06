@@ -26,12 +26,13 @@ RE_EMOJI = "<img class=\"emoji.*?>" #Regex for finding emojis
 RE_MENTION = "<span class=\"mention\".*?</span>" #Regex for finding mentions of other people
 RE_MENTION_USER = "@.*?</span" #Regex for getting the name of the person mentioned
 RE_SPANS = "<span.*?</span>" #Regex for getting all remaining spans
+RE_EM = "<em>.*?</em>" #Regex for getting what I assume is emphasized text
 
 IMG_SYMBOL = "$IMAGE$"
 LINK_SYMBOL = "$LINK$"
 EMOJI_SYMBOL = " $EMOJI$ " #Add spaces so that they aren't sticking to eachother or other words
 
-HTML_SYMBOLS = {"&#39;":"'", "&#225;":"á", "&#224;":"à", "&#226;":"â", "&#233;":"é", "&#232;":"è", "&#201;":"É", "&gt;":">", "&lt;":"<", "&quot;":"\"", "&amp;":"&", "&#171;":"«", "&#187;":"»", "&#231;":"ç", "&#241;":"ñ", "&#237;":"í", "&#251;":"û", "&#235;":"ë", "&#161;":"¡", "&#245;":"õ", "&#234;":"ê", "&#199;":"Ç", "&#236;":"ì", "&#246;":"ö"}
+HTML_SYMBOLS = {"&#39;":"'", "&#225;":"á", "&#224;":"à", "&#226;":"â", "&#233;":"é", "&#232;":"è", "&#201;":"É", "&gt;":">", "&lt;":"<", "&quot;":"\"", "&amp;":"&", "&#171;":"«", "&#187;":"»", "&#231;":"ç", "&#241;":"ñ", "&#237;":"í", "&#251;":"û", "&#235;":"ë", "&#161;":"¡", "&#245;":"õ", "&#234;":"ê", "&#199;":"Ç", "&#236;":"ì", "&#246;":"ö", "’":"'"}
 
 
 
@@ -98,6 +99,11 @@ def getCleaned(message):
 		mention = re.findall(RE_MENTION_USER, re.findall(RE_MENTION, cleaned)[0])[0]
 		mention = mention[:len(mention) - 6] #Now just the name of the mentioned person
 		cleaned = cleaned.replace(re.findall(RE_MENTION, cleaned)[0], " " + mention + " ")
+	while len(re.findall(RE_EM, cleaned)) > 0:
+		#There is an emphasized text
+		mention = re.findall(RE_EM, re.findall(RE_EM, cleaned)[0])[0]
+		mention = mention[4:len(mention) - 5] #Now just the name of the mentioned person
+		cleaned = cleaned.replace(re.findall(RE_EM, cleaned)[0], " " + mention + " ")
 	while len(re.findall(RE_SPANS, cleaned)) > 0:
 		#There is a span remaining
 		cleaned = cleaned.replace(re.findall(RE_SPANS, cleaned)[0], "")
@@ -137,8 +143,13 @@ def getTokenizedMessages(inputList):
 					msg = msg + token + DELIMITER
 					token = ""
 				msg = msg + char + DELIMITER
-		
-		msg = msg + token
+
+		if len(token) > 0:
+			#Nonempty string
+			msg = msg + DELIMITER + token
+		else:
+			#Get rid of the last delimiter
+			msg = msg[:len(msg) - len(DELIMITER)]
 		#Concatenate punctuation that probably belongs together
 		while "." + DELIMITER + "." in msg:
 			msg = msg.replace("." + DELIMITER + ".", "..")
@@ -200,6 +211,8 @@ def main(args):
 	for i in range(0, len(samples)):
 		#Iterate through the indeces of samples
 		samples[i] = samples[i] + DELIMITER + msgs[i]
+		samples[i] = samples[i].replace(DELIMITER + DELIMITER, DELIMITER)
+		#That^^^ is bad, but a more elegant fix sounds like a future-me problem
 		outputFile.write(samples[i] + "\n")
 	outputFile.close()
 
