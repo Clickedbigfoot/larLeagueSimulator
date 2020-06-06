@@ -95,9 +95,10 @@ def fixTokenizing(message):
 	if len(LINK_SYMBOL) > 2:
 		offender = LINK_SYMBOL[0] + DELIMITER + LINK_SYMBOL[1:len(LINK_SYMBOL)-1] + DELIMITER + LINK_SYMBOL[len(LINK_SYMBOL)-1]
 		finalForm = finalForm.replace(offender.lower(), LINK_SYMBOL)
-	if len(EMOJI_SYMBOL) > 2:
-		offender = EMOJI_SYMBOL[0] + DELIMITER + EMOJI_SYMBOL[1:len(EMOJI_SYMBOL)-1] + DELIMITER + EMOJI_SYMBOL[len(EMOJI_SYMBOL)-1]
-		finalForm = finalForm.replace(offender.lower(), EMOJI_SYMBOL)
+	if len(EMOJI_SYMBOL.strip()) > 2:
+		#Added strip for hacky fix regarding my preferred symbol
+		offender = EMOJI_SYMBOL.strip()[0] + DELIMITER + EMOJI_SYMBOL.strip()[1:len(EMOJI_SYMBOL.strip())-1] + DELIMITER + EMOJI_SYMBOL.strip()[len(EMOJI_SYMBOL.strip())-1]
+		finalForm = finalForm.replace(offender.lower(), EMOJI_SYMBOL.strip())
 	return finalForm
 
 """
