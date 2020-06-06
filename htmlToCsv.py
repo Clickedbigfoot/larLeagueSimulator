@@ -121,8 +121,31 @@ def getTokenizedMessages(inputList):
 		contents = getCleaned(contents) #Clean it up emojis and buggy punctuation
 		for char in contents:
 			#Iterate through every character in contents
-			token = token + char
+			if char == " ":
+				#Space
+				if len(token) > 0:
+					#Nonempty string
+					msg = msg + token + DELIMITER
+					token = ""
+			elif char.isdigit() or char.isalpha() or char == "'":
+				#Part of token
+				token = token + char.lower()
+			else:
+				#Probably punctuation, but not apostrophes
+				if len(token) > 0:
+					#There is already a token in the works
+					msg = msg + token + DELIMITER
+					token = ""
+				msg = msg + char + DELIMITER
+		
 		msg = msg + token
+		#Concatenate punctuation that probably belongs together
+		while "." + DELIMITER + "." in msg:
+			msg = msg.replace("." + DELIMITER + ".", "..")
+		while "!" + DELIMITER + "!" in msg:
+			msg = msg.replace("!" + DELIMITER + "!", "!!")
+		while "?" + DELIMITER + "?" in msg:
+			msg = msg.replace("?" + DELIMITER + "?", "??")
 		messages.append(msg)
 	return messages
 
